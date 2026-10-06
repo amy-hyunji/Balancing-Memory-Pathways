@@ -1,0 +1,7 @@
+torch>=2.4
+transformers>=5.0
+peft>=0.17
+textworld==1.7.0
+minigrid==3.0.0
+gymnasium>=1.0
+datasets>=3.0
