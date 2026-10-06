@@ -4,20 +4,9 @@ Code for [*Balancing Memory Pathways: Analyzing and Improving Memory Utilization
 
 <p align="center"><img src="fig/fig1.png" width="700"></p>
 
-Recurrent–attention hybrid LMs carry past information along two pathways: the
-**attention** KV cache and the **recurrent state**. We restrict one pathway at a
-time, leaving computation inside a segment untouched:
 
-| condition | how | past reachable through |
-|---|---|---|
-| recurrent-only | attention across segment boundaries is masked | recurrent state |
-| attention-only | recurrent state (and short conv) reset at each segment boundary | attention |
-
-To encourage better coordination between the two memory pathways, we add an
-auxiliary loss that limits attention's access to earlier context (the
-recurrent-only condition) while the recurrent state propagates through the full
-sequence. This objective encourages the model to retain and use information through the
-recurrent pathway alongside attention.
+Recurrent–attention hybrid LMs carry past information along two pathways: **attention** and the **recurrent state**. We find that, despite having both pathways, hybrid LMs do not use them effectively: they rely mostly on attention and underuse the recurrent state. Adding an auxiliary loss that masks attention's access to earlier context, so past information must flow through the recurrent state, increases use of the recurrent pathway while preserving attention and improves overall performance, especially on long-context tasks.
+Our results suggest that simply providing multiple memory pathways does not ensure their effective use, and that targeted training objectives are needed to coordinate them.
 
 
 ## Requirements
@@ -84,14 +73,14 @@ python make_agent_data.py --env babyai --game MiniBossLevel --split valid --n 10
 
 | loss | flag |
 |---|---|
-| $\mathcal{L}_{\text{SFT}}$ | `--objective sft` |
-| $\mathcal{L}_{\text{SFT}} + \lambda\mathcal{L}_{\text{rec}}$ (ours) | `--objective sft+rec` |
-| $\mathcal{L}_{\text{rec}}$ | `--objective rec` |
-| $\mathcal{L}_{\text{attn}}$ | `--objective attn` |
-| $\mathcal{L}_{\text{SFT}} + \lambda\mathcal{L}_{\text{attn}}$ | `--objective sft+attn` |
+| $`\mathcal{L}_{\text{SFT}}`$ | `--objective sft` |
+| $`\mathcal{L}_{\text{SFT}} + \lambda\mathcal{L}_{\text{rec}}`$ (ours) | `--objective sft+rec` |
+| $`\mathcal{L}_{\text{rec}}`$ | `--objective rec` |
+| $`\mathcal{L}_{\text{attn}}`$ | `--objective attn` |
+| $`\mathcal{L}_{\text{SFT}} + \lambda\mathcal{L}_{\text{attn}}`$ | `--objective sft+attn` |
 
-$\mathcal{L}_{\text{rec}}$ and $\mathcal{L}_{\text{attn}}$ are the SFT loss computed under the
-recurrent-only and attention-only conditions; $\lambda$ is `--lam` (default 0.25).
+$`\mathcal{L}_{\text{rec}}`$ and $`\mathcal{L}_{\text{attn}}`$ are the SFT loss computed under the
+recurrent-only and attention-only conditions; $`\lambda`$ is `--lam` (default 0.25).
 
 Models: `--model qwen3.5-4b` ([Qwen/Qwen3.5-4B](https://huggingface.co/Qwen/Qwen3.5-4B)) and
 `--model nemotron-h-4b` ([nvidia/Nemotron-H-4B-Instruct-128K](https://huggingface.co/nvidia/Nemotron-H-4B-Instruct-128K)).
